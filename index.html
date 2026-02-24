@@ -14,10 +14,12 @@
         .question-item { font-size: 18px; display: flex; align-items: center; justify-content: space-between; padding: 5px; }
         .question-item label { width: 80px; font-weight: bold; color: #34495e; }
         input[type="text"].answer-input { padding: 10px; border: 2px solid #bdc3c7; border-radius: 8px; width: 110px; font-size: 16px; outline: none; }
+        
         .correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; pointer-events: none; }
         .incorrect { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; animation: shake 0.5s; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-        .btn-submit { margin-top: 30px; padding: 15px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; }
+        
+        .btn-submit { margin-top: 30px; padding: 15px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         #feedback { margin-top: 20px; font-weight: bold; text-align: center; font-size: 1.1em; }
     </style>
 </head>
@@ -37,11 +39,12 @@
     <div class="exercise-grid" id="quiz-container">
         </div>
 
-    <button class="btn-submit" onclick="handleSubmit()">SUBMIT & SEND RESULT</button>
+    <button class="btn-submit" onclick="checkAnswers()">SUBMIT & SEND RESULT</button>
     <div id="feedback"></div>
 </div>
 
 <script>
+    // Danh sách động từ
     const verbs = [
         ['a', 'be', 'been'], ['b', 'buy', 'bought'], ['c', 'come', 'come'], ['d', 'do', 'done'],
         ['e', 'eat', 'eaten'], ['f', 'fall', 'fallen'], ['g', 'find', 'found'],
@@ -50,17 +53,21 @@
         ['n', 'think', 'thought'], ['o', 'write', 'written']
     ];
 
+    // Đổ dữ liệu vào giao diện
     const container = document.getElementById('quiz-container');
     verbs.forEach(v => {
+        const isSample = (v[0] === 'a');
         container.innerHTML += `
             <div class="question-item">
                 <label>${v[0]}. ${v[1]}</label>
-                <input type="text" class="answer-input" data-answer="${v[2]}" ${v[0]==='a'?'value="been" class="answer-input correct" readonly':''}>
+                <input type="text" class="answer-input ${isSample ? 'correct' : ''}" 
+                       data-answer="${v[2]}" 
+                       ${isSample ? 'value="been" readonly' : ''}>
             </div>
         `;
     });
 
-    async function handleSubmit() {
+    async function checkAnswers() {
         const name = document.getElementById('student-name').value.trim();
         if (!name) {
             alert("Em hãy nhập Họ và Tên trước khi nộp bài nhé!");
@@ -75,7 +82,7 @@
         let correctCount = 0;
         let total = inputs.length;
 
-        // 1. Kiểm tra đúng sai và đổi màu
+        // 1. Kiểm tra logic đúng/sai và đổi màu
         inputs.forEach(input => {
             const userAnswer = input.value.trim().toLowerCase();
             const correctAnswer = input.getAttribute('data-answer').toLowerCase();
@@ -91,31 +98,31 @@
             }
         });
 
-        // 2. Phát âm thanh
+        // 2. Phản hồi âm thanh và thông báo trên màn hình
         if (correctCount === total) {
             sndCorrect.play();
-            feedback.innerHTML = "🎉 Tuyệt vời! Đã gửi kết quả đúng 100% cho giáo viên!";
+            feedback.innerHTML = "🎉 Tuyệt vời! Bạn đã đúng 100% và kết quả đã được gửi!";
             feedback.style.color = "#28a745";
         } else {
             sndWrong.play();
-            feedback.innerHTML = `❌ Em đúng ${correctCount}/${total} câu. Hãy sửa các ô màu đỏ!`;
+            feedback.innerHTML = `❌ Em đúng ${correctCount}/${total} câu. Hãy sửa các câu màu đỏ!`;
             feedback.style.color = "#dc3545";
         }
 
-        // 3. Gửi dữ liệu về Google Sheets (Thay link của bạn vào đây)
+        // 3. Gửi dữ liệu về Google Sheets
         const webAppUrl = "https://script.google.com/macros/s/AKfycbxhOiXH4biMiqrn4w7QKZFg__7-bEpB_k-YgkQH1RUkjqdYRg1tvpEWK5tuDfgx6a0UUA/exec";
         const scoreStr = `${correctCount}/${total}`;
         
         try {
-            await fetch(webAppUrl, {
+            fetch(webAppUrl, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                 body: `fullName=${encodeURIComponent(name)}&score=${encodeURIComponent(scoreStr)}`
             });
-            console.log("Data sent to Google Sheets");
+            alert("Kết quả đã được ghi nhận vào hệ thống của giáo viên!");
         } catch (e) {
-            console.error("Error sending data", e);
+            console.error("Lỗi gửi dữ liệu:", e);
         }
     }
 </script>
