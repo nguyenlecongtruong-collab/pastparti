@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Past Participle Game - Ting Ting</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #eef2f3; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 800px; width: 100%; }
+        h2 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; display: inline-block; }
+        .exercise-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 25px; }
+        .question-item { font-size: 18px; display: flex; align-items: center; justify-content: space-between; padding: 5px; border-radius: 8px; transition: 0.3s; }
+        .question-item label { width: 80px; font-weight: bold; color: #34495e; }
+        input[type="text"] { padding: 10px; border: 2px solid #bdc3c7; border-radius: 8px; width: 110px; font-size: 16px; outline: none; transition: 0.3s; }
+        
+        /* Màu sắc đáp án */
+        .correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; pointer-events: none; }
+        .incorrect { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; animation: shake 0.5s; }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .btn-submit { margin-top: 30px; padding: 15px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-submit:active { transform: scale(0.98); }
+        #feedback { margin-top: 20px; font-weight: bold; text-align: center; font-size: 1.1em; min-height: 25px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎯 Past Participle Challenge</h2>
+    
+    <audio id="sound-correct" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
+    <audio id="sound-wrong" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
+
+    <div class="exercise-grid">
+        <div class="question-item">
+            <label>a. be</label>
+            <input type="text" data-answer="been" value="been" class="correct" readonly>
+        </div>
+        <script>
+            const verbs = [
+                ['b', 'buy', 'bought'], ['c', 'come', 'come'], ['d', 'do', 'done'],
+                ['e', 'eat', 'eaten'], ['f', 'fall', 'fallen'], ['g', 'find', 'found'],
+                ['h', 'go', 'gone'], ['i', 'have', 'had'], ['j', 'make', 'made'],
+                ['k', 'meet', 'met'], ['l', 'see', 'seen'], ['m', 'take', 'taken'],
+                ['n', 'think', 'thought'], ['o', 'write', 'written']
+            ];
+            
+            verbs.forEach(v => {
+                document.write(`
+                    <div class="question-item">
+                        <label>${v[0]}. ${v[1]}</label>
+                        <input type="text" class="answer-input" data-answer="${v[2]}">
+                    </div>
+                `);
+            });
+        </script>
+    </div>
+
+    <button class="btn-submit" onclick="checkAnswers()">SUBMIT & CHECK</button>
+    <div id="feedback"></div>
+</div>
+
+<script>
+    function checkAnswers() {
+        const inputs = document.querySelectorAll('.answer-input');
+        const sndCorrect = document.getElementById('sound-correct');
+        const sndWrong = document.getElementById('sound-wrong');
+        
+        let totalIncorrect = 0;
+        let allCorrectThisTurn = true;
+
+        inputs.forEach(input => {
+            if (input.readOnly) return; // Bỏ qua những câu đã đúng từ trước
+
+            const userAnswer = input.value.trim().toLowerCase();
+            const correctAnswer = input.getAttribute('data-answer').toLowerCase();
+
+            if (userAnswer === correctAnswer) {
+                input.classList.remove('incorrect');
+                input.classList.add('correct');
+                input.readOnly = true;
+            } else {
+                input.classList.add('incorrect');
+                allCorrectThisTurn = false;
+                totalIncorrect++;
+                // Xóa màu đỏ sau 1s để HS nhập lại
+                setTimeout(() => input.classList.remove('incorrect'), 1000);
+            }
+        });
+
+        const feedback = document.getElementById('feedback');
+        
+        if (totalIncorrect === 0 && Array.from(inputs).every(i => i.readOnly)) {
+            feedback.innerHTML = "🎉 Tuyệt vời! Bạn đã hoàn thành chính xác!";
+            feedback.style.color = "#28a745";
+            sndCorrect.play();
+        } else if (totalIncorrect > 0) {
+            feedback.innerHTML = `❌ Còn ${totalIncorrect} câu chưa đúng. Thử lại nhé!`;
+            feedback.style.color = "#dc3545";
+            sndWrong.play();
+        }
+    }
+</script>
+
+</body>
+</html>
