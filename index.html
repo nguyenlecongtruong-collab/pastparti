@@ -3,31 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Past Participle Game - Ting Ting</title>
+    <title>Past Participle Game - Mạc Đĩnh Chi</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #eef2f3; display: flex; justify-content: center; padding: 20px; }
         .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 800px; width: 100%; }
-        h2 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; display: inline-block; }
+        h2 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; text-align: center; }
+        .info-section { margin-bottom: 20px; text-align: center; background: #f8f9fa; padding: 15px; border-radius: 10px; }
+        #student-name { padding: 10px; width: 250px; border: 2px solid #3498db; border-radius: 8px; font-size: 16px; outline: none; }
         .exercise-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 25px; }
-        .question-item { font-size: 18px; display: flex; align-items: center; justify-content: space-between; padding: 5px; border-radius: 8px; transition: 0.3s; }
+        .question-item { font-size: 18px; display: flex; align-items: center; justify-content: space-between; padding: 5px; }
         .question-item label { width: 80px; font-weight: bold; color: #34495e; }
-        input[type="text"] { padding: 10px; border: 2px solid #bdc3c7; border-radius: 8px; width: 110px; font-size: 16px; outline: none; transition: 0.3s; }
-        
-        /* Màu sắc đáp án */
+        input[type="text"].answer-input { padding: 10px; border: 2px solid #bdc3c7; border-radius: 8px; width: 110px; font-size: 16px; outline: none; }
         .correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; pointer-events: none; }
         .incorrect { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; animation: shake 0.5s; }
-
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
-        }
-
-        .btn-submit { margin-top: 30px; padding: 15px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn-submit:active { transform: scale(0.98); }
-        #feedback { margin-top: 20px; font-weight: bold; text-align: center; font-size: 1.1em; min-height: 25px; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .btn-submit { margin-top: 30px; padding: 15px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; }
+        #feedback { margin-top: 20px; font-weight: bold; text-align: center; font-size: 1.1em; }
     </style>
 </head>
 <body>
@@ -35,50 +26,57 @@
 <div class="container">
     <h2>🎯 Past Participle Challenge</h2>
     
+    <div class="info-section">
+        <label for="student-name">Họ và Tên học sinh:</label><br><br>
+        <input type="text" id="student-name" placeholder="Nhập tên của em tại đây...">
+    </div>
+
     <audio id="sound-correct" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
     <audio id="sound-wrong" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
 
-    <div class="exercise-grid">
-        <div class="question-item">
-            <label>a. be</label>
-            <input type="text" data-answer="been" value="been" class="correct" readonly>
+    <div class="exercise-grid" id="quiz-container">
         </div>
-        <script>
-            const verbs = [
-                ['b', 'buy', 'bought'], ['c', 'come', 'come'], ['d', 'do', 'done'],
-                ['e', 'eat', 'eaten'], ['f', 'fall', 'fallen'], ['g', 'find', 'found'],
-                ['h', 'go', 'gone'], ['i', 'have', 'had'], ['j', 'make', 'made'],
-                ['k', 'meet', 'met'], ['l', 'see', 'seen'], ['m', 'take', 'taken'],
-                ['n', 'think', 'thought'], ['o', 'write', 'written']
-            ];
-            
-            verbs.forEach(v => {
-                document.write(`
-                    <div class="question-item">
-                        <label>${v[0]}. ${v[1]}</label>
-                        <input type="text" class="answer-input" data-answer="${v[2]}">
-                    </div>
-                `);
-            });
-        </script>
-    </div>
 
-    <button class="btn-submit" onclick="checkAnswers()">SUBMIT & CHECK</button>
+    <button class="btn-submit" onclick="handleSubmit()">SUBMIT & SEND RESULT</button>
     <div id="feedback"></div>
 </div>
 
 <script>
-    function checkAnswers() {
+    const verbs = [
+        ['a', 'be', 'been'], ['b', 'buy', 'bought'], ['c', 'come', 'come'], ['d', 'do', 'done'],
+        ['e', 'eat', 'eaten'], ['f', 'fall', 'fallen'], ['g', 'find', 'found'],
+        ['h', 'go', 'gone'], ['i', 'have', 'had'], ['j', 'make', 'made'],
+        ['k', 'meet', 'met'], ['l', 'see', 'seen'], ['m', 'take', 'taken'],
+        ['n', 'think', 'thought'], ['o', 'write', 'written']
+    ];
+
+    const container = document.getElementById('quiz-container');
+    verbs.forEach(v => {
+        container.innerHTML += `
+            <div class="question-item">
+                <label>${v[0]}. ${v[1]}</label>
+                <input type="text" class="answer-input" data-answer="${v[2]}" ${v[0]==='a'?'value="been" class="answer-input correct" readonly':''}>
+            </div>
+        `;
+    });
+
+    async function handleSubmit() {
+        const name = document.getElementById('student-name').value.trim();
+        if (!name) {
+            alert("Em hãy nhập Họ và Tên trước khi nộp bài nhé!");
+            return;
+        }
+
         const inputs = document.querySelectorAll('.answer-input');
         const sndCorrect = document.getElementById('sound-correct');
         const sndWrong = document.getElementById('sound-wrong');
+        const feedback = document.getElementById('feedback');
         
-        let totalIncorrect = 0;
-        let allCorrectThisTurn = true;
+        let correctCount = 0;
+        let total = inputs.length;
 
+        // 1. Kiểm tra đúng sai và đổi màu
         inputs.forEach(input => {
-            if (input.readOnly) return; // Bỏ qua những câu đã đúng từ trước
-
             const userAnswer = input.value.trim().toLowerCase();
             const correctAnswer = input.getAttribute('data-answer').toLowerCase();
 
@@ -86,58 +84,41 @@
                 input.classList.remove('incorrect');
                 input.classList.add('correct');
                 input.readOnly = true;
+                correctCount++;
             } else {
                 input.classList.add('incorrect');
-                allCorrectThisTurn = false;
-                totalIncorrect++;
-                // Xóa màu đỏ sau 1s để HS nhập lại
                 setTimeout(() => input.classList.remove('incorrect'), 1000);
             }
         });
 
-        const feedback = document.getElementById('feedback');
-        
-        if (totalIncorrect === 0 && Array.from(inputs).every(i => i.readOnly)) {
-            feedback.innerHTML = "🎉 Tuyệt vời! Bạn đã hoàn thành chính xác!";
-            feedback.style.color = "#28a745";
+        // 2. Phát âm thanh
+        if (correctCount === total) {
             sndCorrect.play();
-        } else if (totalIncorrect > 0) {
-            feedback.innerHTML = `❌ Còn ${totalIncorrect} câu chưa đúng. Thử lại nhé!`;
-            feedback.style.color = "#dc3545";
+            feedback.innerHTML = "🎉 Tuyệt vời! Đã gửi kết quả đúng 100% cho giáo viên!";
+            feedback.style.color = "#28a745";
+        } else {
             sndWrong.play();
+            feedback.innerHTML = `❌ Em đúng ${correctCount}/${total} câu. Hãy sửa các ô màu đỏ!`;
+            feedback.style.color = "#dc3545";
+        }
+
+        // 3. Gửi dữ liệu về Google Sheets (Thay link của bạn vào đây)
+        const webAppUrl = "DÁN_LINK_WEB_APP_URL_CỦA_BẠN_VÀO_ĐÂY";
+        const scoreStr = `${correctCount}/${total}`;
+        
+        try {
+            await fetch(webAppUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `fullName=${encodeURIComponent(name)}&score=${encodeURIComponent(scoreStr)}`
+            });
+            console.log("Data sent to Google Sheets");
+        } catch (e) {
+            console.error("Error sending data", e);
         }
     }
 </script>
 
 </body>
 </html>
-<div style="margin-bottom: 20px; text-align: center;">
-    <input type="text" id="student-name" placeholder="Nhập Họ và Tên của em" style="width: 250px; padding: 10px; border: 2px solid #3498db; border-radius: 8px;">
-</div>
-
-<script>
-    async function checkAnswers() {
-        const name = document.getElementById('student-name').value;
-        if (!name) {
-            alert("Vui lòng nhập tên trước khi nộp bài!");
-            return;
-        }
-
-        const inputs = document.querySelectorAll('.answer-input');
-        let correctCount = 0;
-        // ... (giữ lại logic kiểm tra đúng sai cũ của bạn ở đây) ...
-
-        // Gửi kết quả về Google Sheets
-        const webAppUrl = "https://script.google.com/macros/s/AKfycbxhOiXH4biMiqrn4w7QKZFg__7-bEpB_k-YgkQH1RUkjqdYRg1tvpEWK5tuDfgx6a0UUA/exec";
-        const score = `${correctCount}/${inputs.length}`;
-        
-        fetch(webAppUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: `fullName=${encodeURIComponent(name)}&score=${encodeURIComponent(score)}`
-        });
-
-        alert("Kết quả của em đã được gửi cho giáo viên!");
-    }
-</script>
