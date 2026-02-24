@@ -111,3 +111,33 @@
 
 </body>
 </html>
+<div style="margin-bottom: 20px; text-align: center;">
+    <input type="text" id="student-name" placeholder="Nhập Họ và Tên của em" style="width: 250px; padding: 10px; border: 2px solid #3498db; border-radius: 8px;">
+</div>
+
+<script>
+    async function checkAnswers() {
+        const name = document.getElementById('student-name').value;
+        if (!name) {
+            alert("Vui lòng nhập tên trước khi nộp bài!");
+            return;
+        }
+
+        const inputs = document.querySelectorAll('.answer-input');
+        let correctCount = 0;
+        // ... (giữ lại logic kiểm tra đúng sai cũ của bạn ở đây) ...
+
+        // Gửi kết quả về Google Sheets
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbxhOiXH4biMiqrn4w7QKZFg__7-bEpB_k-YgkQH1RUkjqdYRg1tvpEWK5tuDfgx6a0UUA/exec";
+        const score = `${correctCount}/${inputs.length}`;
+        
+        fetch(webAppUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `fullName=${encodeURIComponent(name)}&score=${encodeURIComponent(score)}`
+        });
+
+        alert("Kết quả của em đã được gửi cho giáo viên!");
+    }
+</script>
