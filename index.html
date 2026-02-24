@@ -13,14 +13,14 @@
         .exercise-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 25px; }
         .question-item { font-size: 18px; display: flex; align-items: center; justify-content: space-between; padding: 5px; }
         .question-item label { width: 80px; font-weight: bold; color: #34495e; }
-        input[type="text"].answer-input { padding: 10px; border: 2px solid #bdc3c7; border-radius: 8px; width: 110px; font-size: 16px; outline: none; }
+        input[type="text"].answer-input { padding: 10px; border: 2px solid #bdc3c7; border-radius: 8px; width: 110px; font-size: 16px; outline: none; transition: 0.3s; }
         
-        .correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; pointer-events: none; }
+        .correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; pointer-events: none; }
         .incorrect { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; animation: shake 0.5s; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
         
-        .btn-submit { margin-top: 30px; padding: 15px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        #feedback { margin-top: 20px; font-weight: bold; text-align: center; font-size: 1.1em; }
+        .btn-submit { margin-top: 30px; padding: 15px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; }
+        #feedback { margin-top: 20px; font-weight: bold; text-align: center; font-size: 1.2em; min-height: 30px; }
     </style>
 </head>
 <body>
@@ -30,21 +30,19 @@
     
     <div class="info-section">
         <label for="student-name">Họ và Tên học sinh:</label><br><br>
-        <input type="text" id="student-name" placeholder="Nhập tên của em tại đây...">
+        <input type="text" id="student-name" placeholder="Nhập tên của em...">
     </div>
 
     <audio id="sound-correct" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
     <audio id="sound-wrong" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
 
-    <div class="exercise-grid" id="quiz-container">
-        </div>
+    <div class="exercise-grid" id="quiz-container"></div>
 
-    <button class="btn-submit" onclick="checkAnswers()">SUBMIT & SEND RESULT</button>
+    <button class="btn-submit" onclick="processAll()">SUBMIT & SEND RESULT</button>
     <div id="feedback"></div>
 </div>
 
 <script>
-    // Danh sách động từ
     const verbs = [
         ['a', 'be', 'been'], ['b', 'buy', 'bought'], ['c', 'come', 'come'], ['d', 'do', 'done'],
         ['e', 'eat', 'eaten'], ['f', 'fall', 'fallen'], ['g', 'find', 'found'],
@@ -53,7 +51,6 @@
         ['n', 'think', 'thought'], ['o', 'write', 'written']
     ];
 
-    // Đổ dữ liệu vào giao diện
     const container = document.getElementById('quiz-container');
     verbs.forEach(v => {
         const isSample = (v[0] === 'a');
@@ -67,10 +64,10 @@
         `;
     });
 
-    async function checkAnswers() {
+    function processAll() {
         const name = document.getElementById('student-name').value.trim();
         if (!name) {
-            alert("Em hãy nhập Họ và Tên trước khi nộp bài nhé!");
+            alert("Em hãy nhập Họ và Tên trước khi nộp bài!");
             return;
         }
 
@@ -80,9 +77,8 @@
         const feedback = document.getElementById('feedback');
         
         let correctCount = 0;
-        let total = inputs.length;
 
-        // 1. Kiểm tra logic đúng/sai và đổi màu
+        // 1. KIỂM TRA ĐÚNG SAI VÀ HIỆN MÀU (Dành cho học sinh)
         inputs.forEach(input => {
             const userAnswer = input.value.trim().toLowerCase();
             const correctAnswer = input.getAttribute('data-answer').toLowerCase();
@@ -93,39 +89,36 @@
                 input.readOnly = true;
                 correctCount++;
             } else {
+                input.classList.remove('correct');
                 input.classList.add('incorrect');
+                // Lắc nhẹ để báo sai
                 setTimeout(() => input.classList.remove('incorrect'), 1000);
             }
         });
 
-        // 2. Phản hồi âm thanh và thông báo trên màn hình
+        // 2. PHẢN HỒI CHO HỌC SINH
+        const total = inputs.length;
         if (correctCount === total) {
             sndCorrect.play();
-            feedback.innerHTML = "🎉 Tuyệt vời! Bạn đã đúng 100% và kết quả đã được gửi!";
-            feedback.style.color = "#28a745";
+            feedback.innerHTML = `<span style="color: #28a745;">Excellent! Correct ${correctCount}/${total}. Results sent! 🎉</span>`;
         } else {
             sndWrong.play();
-            feedback.innerHTML = `❌ Em đúng ${correctCount}/${total} câu. Hãy sửa các câu màu đỏ!`;
-            feedback.style.color = "#dc3545";
+            feedback.innerHTML = `<span style="color: #dc3545;">You got ${correctCount}/${total}. Fix the red boxes! ✍️</span>`;
         }
 
-        // 3. Gửi dữ liệu về Google Sheets
+        // 3. GỬI DỮ LIỆU VỀ GOOGLE SHEETS (Dành cho giáo viên)
         const webAppUrl = "https://script.google.com/macros/s/AKfycbxhOiXH4biMiqrn4w7QKZFg__7-bEpB_k-YgkQH1RUkjqdYRg1tvpEWK5tuDfgx6a0UUA/exec";
         const scoreStr = `${correctCount}/${total}`;
         
-        try {
-            fetch(webAppUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: `fullName=${encodeURIComponent(name)}&score=${encodeURIComponent(scoreStr)}`
-            });
-            alert("Kết quả đã được ghi nhận vào hệ thống của giáo viên!");
-        } catch (e) {
-            console.error("Lỗi gửi dữ liệu:", e);
-        }
+        fetch(webAppUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `fullName=${encodeURIComponent(name)}&score=${encodeURIComponent(scoreStr)}`
+        });
+        
+        alert("Kết quả đã được gửi về cho cô!");
     }
 </script>
-
 </body>
 </html>
